@@ -33,7 +33,7 @@ class Chronicle {
 
   /* examples:
     step.chronicle.tagValueOperation({ tag: "Modality", value: "SR", operation: console.log, })
-    step.chronicle.tagValueOperation({ tag: "SOPClass", value: "ComprehensiveSR", operation: console.log, })
+    step.chronicle.tagValueOperation({ tag: "SOPClassUID", value: "ComprehensiveSR", operation: console.log, })
   */
   tagValueOperation(options) {
     let chronicle = this.chronicle;

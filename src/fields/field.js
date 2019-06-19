@@ -129,7 +129,9 @@ Field.useIntegerTextures = false; // default, but possibly overridden based on g
 // array of fields from dataset
 Field.fromDataset = function(dataset) {
   let fields = [];
-  switch (dataset.SOPClass) {
+  let sopClassName = dcmjs.data.DicomMetaDictionary.sopClassNamesByUID[dataset.SOPClassUID];
+
+  switch (sopClassName) {
     case "CTImage":
     case "MRImage":
     case "EnhancedCTImage":

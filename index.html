@@ -22,49 +22,42 @@
   <script src="js/TF/TF_panel.js"></script>
 
 
-  <script type="text/javascript" src="../dcmio/FileSaver.min.js"></script>
-  <script type="text/javascript" src="../dcmio/DicomMetaDictionary.js"></script>
-  <script type="text/javascript" src="../dcmio/BufferStream.js"></script>
-  <script type="text/javascript" src="../dcmio/ValueRepresentation.js"></script>
-  <script type="text/javascript" src="../dcmio/Tag.js"></script>
-  <script type="text/javascript" src="../dcmio/DicomMessage.js"></script>
-  <script type="text/javascript" src="../dcmio/normalizers.js"></script>
-  <script type="text/javascript" src="../dcmio/derivations.js"></script>
-  <script type="text/javascript" src="../dcmio/colors.js"></script>
+  <script src="https://unpkg.com/dcmjs"></script>
+  <script type="text/javascript" src="./js/FileSaver.min.js"></script>
 
-  <script type="text/javascript" src="./linear.js"></script>
-  <script type="text/javascript" src="./commongl.js"></script>
+  <script type="text/javascript" src="./src/linear.js"></script>
+  <script type="text/javascript" src="./src/commongl.js"></script>
 
-  <script type="text/javascript" src="./fields/field.js"></script>
-  <script type="text/javascript" src="./fields/fiducial.js"></script>
-  <script type="text/javascript" src="./fields/pixel.js"></script>
-  <script type="text/javascript" src="./fields/image.js"></script>
-  <script type="text/javascript" src="./fields/segmentation.js"></script>
-  <script type="text/javascript" src="./fields/transform.js"></script>
+  <script type="text/javascript" src="./src/fields/field.js"></script>
+  <script type="text/javascript" src="./src/fields/fiducial.js"></script>
+  <script type="text/javascript" src="./src/fields/pixel.js"></script>
+  <script type="text/javascript" src="./src/fields/image.js"></script>
+  <script type="text/javascript" src="./src/fields/segmentation.js"></script>
+  <script type="text/javascript" src="./src/fields/transform.js"></script>
 
-  <script type="text/javascript" src="./formats.js"></script>
-  <script type="text/javascript" src="./slicer.js"></script>
+  <script type="text/javascript" src="./src/formats.js"></script>
+  <script type="text/javascript" src="./src/slicer.js"></script>
 
-  <script type="text/javascript" src="./view.js"></script>
-  <script type="text/javascript" src="./generators.js"></script>
-  <script type="text/javascript" src="./renderer.js"></script>
-  <script type="text/javascript" src="./growcut.js"></script>
-  <script type="text/javascript" src="./gaussian.js"></script>
-  <script type="text/javascript" src="./bilateral.js"></script>
-  <script type="text/javascript" src="./similarity.js"></script>
-  <script type="text/javascript" src="./gabor.js"></script>
-  <script type="text/javascript" src="./nonlocalmeans.js"></script>
-  <script type="text/javascript" src="./pde.js"></script>
-  <script type="text/javascript" src="./registration.js"></script>
+  <script type="text/javascript" src="./src/view.js"></script>
+  <script type="text/javascript" src="./src/generators.js"></script>
+  <script type="text/javascript" src="./src/renderer.js"></script>
+  <script type="text/javascript" src="./src/growcut.js"></script>
+  <script type="text/javascript" src="./src/gaussian.js"></script>
+  <script type="text/javascript" src="./src/bilateral.js"></script>
+  <script type="text/javascript" src="./src/similarity.js"></script>
+  <script type="text/javascript" src="./src/gabor.js"></script>
+  <script type="text/javascript" src="./src/nonlocalmeans.js"></script>
+  <script type="text/javascript" src="./src/pde.js"></script>
+  <script type="text/javascript" src="./src/registration.js"></script>
 
 
   <link rel="stylesheet" href="./css/step.css" />
-  <script type="text/javascript" src="./ui.js"></script>
-  <script type="text/javascript" src="./ui.step.js"></script>
+  <script type="text/javascript" src="./src/ui.js"></script>
+  <script type="text/javascript" src="./src/ui.step.js"></script>
 
-  <script type="text/javascript" src="./controls.js"></script>
+  <script type="text/javascript" src="./src/controls.js"></script>
 
-  <script type="text/javascript" src="./chronicle.js"></script>
+  <script type="text/javascript" src="./src/chronicle.js"></script>
 
 </head>
 
@@ -327,7 +320,7 @@ function addTransformField(options={}) {
   let arrayElementCount = [w,h,d].reduce((p,e)=>p*e);
   let vectorGrid = new Float32Array(3 * arrayElementCount);
   globals.vectorGrid = vectorGrid;
-  let pixelMeasures = referenceDataset.SharedFunctionalGroups.PixelMeasures;
+  let pixelMeasures = referenceDataset.SharedFunctionalGroupsSequence.PixelMeasures;
   let resolution = [pixelMeasures.PixelSpacing[1], pixelMeasures.PixelSpacing[0], pixelMeasures.SpacingBetweenSlices];
 
   let thisIsADemo = true;
@@ -342,10 +335,10 @@ function addTransformField(options={}) {
 
   let transformDataset = {
     SeriesDescription: "Deformation from addTransformField method",
-    SOPClass: "DeformableSpatialRegistration",
+    SOPClassUID: "DeformableSpatialRegistration",
     DeformableRegistration: {
       DeformableRegistrationGrid: {
-        ImageOrientationPatient: referenceDataset.SharedFunctionalGroups.PlaneOrientation.ImageOrientationPatient,
+        ImageOrientationPatient: referenceDataset.SharedFunctionalGroupsSequence.PlaneOrientation.ImageOrientationPatient,
         ImagePositionPatient: Array.prototype.slice.call(options.referenceField.pixelToPatient.slice(12,15)),
         GridDimensions: [w, h, d],
         GridResolution: resolution,
@@ -439,7 +432,7 @@ function requestInstance(url, loaded) {
 }
 
 function loadDatasets(datasets) {
-  let dataset = Normalizer.normalizeToDataset(datasets);
+  let dataset = dcmjs.normalizers.Normalizer.normalizeToDataset(datasets);
   if (dataset == undefined) {
     console.error('Could not form normalized dataset from datasets');
     console.log(datasets);
@@ -703,7 +696,7 @@ function performGrowCut() {
   let labelFields = [];
   let strengthFields = [];
   [0,1].forEach(index=>{
-    let derivedImage = new DerivedImage([backgroundField.dataset]);
+    let derivedImage = new dcmjs.derivations.DerivedImage([backgroundField.dataset]);
     let labelField = Field.fromDataset(derivedImage.dataset)[0];
     let strengthField = Field.fromDataset(derivedImage.dataset)[0];
     labelFields.push(labelField);

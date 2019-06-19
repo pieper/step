@@ -11,7 +11,7 @@ class PixelField extends Field {
   }
 
   orientation() {
-    return(this.dataset.SharedFunctionalGroups.PlaneOrientation.ImageOrientationPatient.map(Number));
+    return(this.dataset.SharedFunctionalGroupsSequence.PlaneOrientation.ImageOrientationPatient.map(Number));
   }
 
   sliceStepFromOrientation(orientation) {
@@ -23,7 +23,7 @@ class PixelField extends Field {
   }
 
   spacing() {
-    let pixelMeasures = this.dataset.SharedFunctionalGroups.PixelMeasures;
+    let pixelMeasures = this.dataset.SharedFunctionalGroupsSequence.PixelMeasuresSequence;
     // NB: DICOM PixelSpacing is defined as Row then Column, unlike ImageOrientationPatient
     // Convention for fields is always that pixel space is column, row, slice so we swap
     // the first two entries here.
@@ -34,7 +34,7 @@ class PixelField extends Field {
 
   position(frame) {
     frame = frame || 0;
-    let perFrameGroups = this.dataset.PerFrameFunctionalGroups;
+    let perFrameGroups = this.dataset.PerFrameFunctionalGroupsSequence;
     return(perFrameGroups[frame].PlanePosition.ImagePositionPatient.map(Number));
   }
 

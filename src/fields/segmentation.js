@@ -44,8 +44,8 @@ class SegmentationField extends PixelField {
     if (this.dataset.BitsAllocated != 1) {
       console.warn(this, 'Can only render 1 bit data');
     }
-    let sharedGroups = this.dataset.SharedFunctionalGroups;
-    let pixelMeasures = sharedGroups.PixelMeasures;
+    let sharedGroups = this.dataset.SharedFunctionalGroupsSequence;
+    let pixelMeasures = sharedGroups.PixelMeasuresSequence;
     if (pixelMeasures.SpacingBetweenSlices != pixelMeasures.SliceThickness) {
       console.warn('SpacingBetweenSlices and SliceThickness should be equal for SEG');
       console.warn(pixelMeasures.SpacingBetweenSlices + ' != ' + pixelMeasures.SliceThickness);
@@ -105,7 +105,7 @@ SegmentationField.fieldsFromDataset = function(options) {
   if (!options.dataset) {
     return [];
   }
-  if (options.dataset.NumberOfFrames != options.dataset.PerFrameFunctionalGroups.length) {
+  if (options.dataset.NumberOfFrames != options.dataset.PerFrameFunctionalGroupsSequence.length) {
     console.error('Number of frames does not match number of functional groups');
   }
   let fields = [];
@@ -123,7 +123,7 @@ SegmentationField.fieldsFromDataset = function(options) {
   });
   // next make a list of frames per segment
   let segmentGroupLists = ["Empty GroupList 0"];
-  options.dataset.PerFrameFunctionalGroups.forEach(functionalGroup => {
+  options.dataset.PerFrameFunctionalGroupsSequence.forEach(functionalGroup => {
     let segmentNumber = functionalGroup.SegmentIdentification.ReferencedSegmentNumber;
     if (!segmentGroupLists[segmentNumber]) {
       segmentGroupLists[segmentNumber] = [];
@@ -149,7 +149,7 @@ SegmentationField.fieldsFromDataset = function(options) {
   let segmentNumber = 1;
   segmentGroupLists.slice(1).forEach(segmentGroupList => {
     let dataset = segmentDatasets[segmentNumber];
-    dataset.PerFrameFunctionalGroups = segmentGroupList;
+    dataset.PerFrameFunctionalGroupsSequence = segmentGroupList;
     let begin = segmentOffsets[segmentNumber];
     let end = begin + segmentSizes[segmentNumber];
     dataset.NumberOfFrames = segmentGroupLists[segmentNumber].length;

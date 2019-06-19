@@ -104,7 +104,7 @@ space origin: ${nrrd.header['space origin']}
     if (sizes.length == 3) {
       // Scalar Volume, assume it's CT-like - TODO: should be secondary capture
       dataset = {
-        "SOPClass": "EnhancedCTImage",
+        "SOPClassUID": dcmjs.data.DicomMetaDictionary.sopClassUIDsByName["EnhancedCTImage"],
         "Columns": String(sizes[0]),
         "Rows": String(sizes[1]),
         "NumberOfFrames": String(sizes[2]),
@@ -117,7 +117,7 @@ space origin: ${nrrd.header['space origin']}
         "PixelRepresentation": 1,
         "RescaleSlope": "1",
         "RescaleIntercept": "0",
-        "SharedFunctionalGroups": {
+        "SharedFunctionalGroupsSequence": {
           "PlaneOrientation": {
             "ImageOrientationPatient": [
               String(unitDirections[0][0]),
@@ -128,7 +128,7 @@ space origin: ${nrrd.header['space origin']}
               String(unitDirections[1][2])
             ]
           },
-          "PixelMeasures": {
+          "PixelMeasuresSequence": {
             "PixelSpacing": [ String(spacings[0]), String(spacings[1]) ],
             "SpacingBetweenSlices": String(spacings[2])
           },
@@ -141,9 +141,9 @@ space origin: ${nrrd.header['space origin']}
         "PixelData": nrrd.data
       };
 
-      dataset.PerFrameFunctionalGroups = [];
+      dataset.PerFrameFunctionalGroupsSequence = [];
       for (let frameIndex of Array(sizes[2]).keys()) {
-        dataset.PerFrameFunctionalGroups.push({
+        dataset.PerFrameFunctionalGroupsSequence.push({
           "PlanePosition": {
             "ImagePositionPatient": [
               String(origin[0] + frameIndex * directions[2][0]),
@@ -157,7 +157,7 @@ space origin: ${nrrd.header['space origin']}
       // assume it's a DeformableSpatialRegistration
       // TODO: need to deal with Frame of Reference and other issues
       dataset = {
-        SOPClass: "DeformableSpatialRegistration",
+        SOPClassUID: "DeformableSpatialRegistration",
         DeformableRegistration: {
           DeformableRegistrationGrid: {
             ImageOrientationPatient: [
