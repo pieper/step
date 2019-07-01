@@ -505,7 +505,7 @@ function performImageFilter( generator, options={} ) {
     return (options);
   }
 
-  options.derivedImage = new DerivedImage([options.filterField.dataset]);
+  options.derivedImage = new dcmjs.derivations.DerivedImage([options.filterField.dataset]);
   options.derivedField0 = Field.fromDataset(options.derivedImage.dataset)[0];
 
   // override default calculation
@@ -628,7 +628,7 @@ function performPDE(options) {
   }
   filterField.visible = 1;
 
-  let derivedImage = new DerivedImage([filterField.dataset]);
+  let derivedImage = new dcmjs.derivations.DerivedImage([filterField.dataset]);
   let derivedFields = [];
   derivedFields[0] = Field.fromDataset(derivedImage.dataset)[0];
   derivedFields[1] = Field.fromDataset(derivedImage.dataset)[0];
