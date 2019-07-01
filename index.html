@@ -496,6 +496,7 @@ function updateTransferFunction(options = {}) {
 }
 
 function performImageFilter( generator, options={} ) {
+  console.time('performImageFilter');
   options.uniforms = options.uniforms || {};
   options.filterField = options.filterField ||
     step.renderer.inputFields.find((field) => field.constructor.name == "ImageField");
@@ -533,6 +534,7 @@ function performImageFilter( generator, options={} ) {
 
   console.log(`image filtering with `, options.generator);
   options.generator.generate();
+  console.timeLog('performImageFilter');
   options.derivedField0.dataset.PixelData = new Int16Array(options.derivedField0.generatedPixelData);
 
   step.renderer._render();
@@ -541,6 +543,8 @@ function performImageFilter( generator, options={} ) {
   step.renderer.inputFields = originalInputFields;
   step.renderer.inputFields.push(options.derivedField0);
   step.renderer.requestRender(step.view);
+
+  console.timeEnd('performImageFilter');
 
   return (options);
 }
