@@ -90,27 +90,31 @@ class PixelField extends Field {
     ];
     */
 
-    // the bounds are the outer corners of the very first and very last
-    // pixels of the dataset measured in pixel space
+    // find the min-max extent in patient space by looking ta 8 corners
+    let bigPositive = 2**32;
+    let bigNegative = -1 * bigPositive;
+    let min = vec4.fromValues(bigPositive, bigPositive, bigPositive, 1);
+    let max = vec4.fromValues(bigNegative, bigNegative, bigNegative, 1);
+    let dimensions = vec4.fromValues(...this.pixelDimensions,1);
+    [0,dimensions[0]].forEach(left => {
+      [0,dimensions[1]].forEach(posterior => {
+        [0,dimensions[2]].forEach(superior => {
+          let corner = vec4.fromValues(left, posterior, superior, 1);
+          vec4.transformMat4(corner, corner, this.pixelToPatient);
+          vec4.min(min, min, corner);
+          vec4.max(max, max, corner);
+        });
+      });
+    });
     let halfSpacings = vec4.fromValues(0.5, 0.5, 0.5, 0.);
     vec4.transformMat4(halfSpacings, halfSpacings, this.pixelToPatient);
-    let firstCorner = vec3.create();
-    vec3.subtract(firstCorner, origin, halfSpacings);
-    let dimensions = vec4.fromValues(...this.pixelDimensions,1);
-    let secondCorner4 = vec4.create();
-    vec4.transformMat4(secondCorner4, dimensions, this.pixelToPatient);
-    vec4.subtract(secondCorner4, secondCorner4, halfSpacings);
-    let secondCorner = vec3.fromValues(...secondCorner4.valueOf().slice(0,3));
-    let min = vec3.create();
-    let max = vec3.create();
-    vec3.min(min, firstCorner, secondCorner);
-    vec3.max(max, firstCorner, secondCorner);
-    this.bounds = {min : min.valueOf(), max : max.valueOf()};
-
-    let center = vec3.create();
-    vec3.add(center, min, max);
-    vec3.scale(center, center, 0.5);
-    this.center = center.valueOf();
+    vec4.subtract(min, min, halfSpacings);
+    vec4.add(max, max, halfSpacings);
+    this.bounds = {min : min.valueOf().slice(0,3), max : max.valueOf().slice(0,3)};
+    let center = vec4.create();
+    vec4.add(center, min, max);
+    vec4.scale(center, center, 0.5);
+    this.center = center.valueOf().slice(0,3);
   }
 
   uniforms() {
