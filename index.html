@@ -320,7 +320,7 @@ function addTransformField(options={}) {
   let arrayElementCount = [w,h,d].reduce((p,e)=>p*e);
   let vectorGrid = new Float32Array(3 * arrayElementCount);
   globals.vectorGrid = vectorGrid;
-  let pixelMeasures = referenceDataset.SharedFunctionalGroupsSequence.PixelMeasures;
+  let pixelMeasures = referenceDataset.SharedFunctionalGroupsSequence.PixelMeasuresSequence;
   let resolution = [pixelMeasures.PixelSpacing[1], pixelMeasures.PixelSpacing[0], pixelMeasures.SpacingBetweenSlices];
 
   let thisIsADemo = true;
