@@ -90,13 +90,14 @@ function registrationReview(options={}) {
   Promise.all(promises).then(datasets => {
     datasets[0].SeriesDescription = "Fixed";
     datasets[1].SeriesDescription = "Moving";
-    loadDatasets(dataset.slice(0,2));
+    loadDatasets([datasets[0]]);
+    loadDatasets([datasets[1]]);
     step.renderer.inputFields[0].rgba = [0, 1, 0, 1]; // fixed is green
 
-    let transformField = Field.fromDataset(transformDataset)[0];
+    let transformField = Field.fromDataset(datasets[2])[0];
     transformField.visible = 0;
     step.renderer.inputFields.unshift(transformField);
-    step.renderer.inputFields[1].transformField = transformField; // moving
+    step.renderer.inputFields[2].transformField = transformField; // moving
     step.renderer.inputFields.forEach(field => field.gradientOpacityScale = 0.);
     step.renderer.updateProgram();
     step.renderer.requestRender(step.view);

@@ -157,7 +157,7 @@ space origin: ${nrrd.header['space origin']}
       // assume it's a DeformableSpatialRegistration
       // TODO: need to deal with Frame of Reference and other issues
       dataset = {
-        SOPClassUID: "DeformableSpatialRegistration",
+        "SOPClassUID": dcmjs.data.DicomMetaDictionary.sopClassUIDsByName["DeformableSpatialRegistration"],
         DeformableRegistration: {
           DeformableRegistrationGrid: {
             ImageOrientationPatient: [
