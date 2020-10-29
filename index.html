@@ -68,10 +68,46 @@
 <script>
 'use strict'
 
-// for easy console reference to anything for debugging
+// add variables here for easy console reference to anything for debugging
 let globals = {};
 
 let slicerURL = 'http://localhost:2016/slicer';
+
+//
+// generalized transform visualization (neurosurgical ultrasound experiment
+//
+
+function registrationReview(options={}) {
+
+  let slicer = new Slicer({url: slicerURL});
+
+  let promises = [
+      slicer.volume(options.fixedVolumeID),
+      slicer.volume(options.movingVolumeID),
+      slicer.gridTransform(options.gridTransformID),
+    ];
+
+  Promise.all(promises).then(datasets => {
+    datasets[0].SeriesDescription = "Fixed";
+    datasets[1].SeriesDescription = "Moving";
+    loadDatasets(dataset.slice(0,2));
+    step.renderer.inputFields[0].rgba = [0, 1, 0, 1]; // fixed is green
+
+    let transformField = Field.fromDataset(transformDataset)[0];
+    transformField.visible = 0;
+    step.renderer.inputFields.unshift(transformField);
+    step.renderer.inputFields[1].transformField = transformField; // moving
+    step.renderer.inputFields.forEach(field => field.gradientOpacityScale = 0.);
+    step.renderer.updateProgram();
+    step.renderer.requestRender(step.view);
+
+    step.controls.tool = 'trackball';
+    step.controls.gangWindow = true;
+    step.view.viewNear = 0;
+    step.view.viewFar = Linear.LARGE_NUMBER;
+    step.uniforms.sliceMode.value = 0;
+  });
+}
 
 //
 // Hard coded for the neurosurgical ultrasound experiment
@@ -98,7 +134,7 @@ function Patient3_setup() {
       dataset.SeriesDescription = 'preMR';
       loadDatasets([dataset]);
       step.renderer.inputFields[1].rgba = [0, 1, 0, 1]; // target is green
-      slicer.transform(gridTransformID).then(transformDataset=>{
+      slicer.gridTransform(gridTransformID).then(transformDataset=>{
         let transformField = Field.fromDataset(transformDataset)[0];
         transformField.visible = 0;
         step.renderer.inputFields.unshift(transformField);
@@ -112,7 +148,7 @@ function Patient3_setup() {
   });
 
   step.controls.tool = 'trackball';
-  step.controls.gangWindow = 'trackball';
+  step.controls.gangWindow = true;
   step.view.viewNear = 0;
   step.view.viewFar = Linear.LARGE_NUMBER;
   step.uniforms.sliceMode.value = 0;
@@ -132,7 +168,7 @@ function Patient17_setup() {
     slicer.volume(premri1ID).then(dataset=>{
       dataset.SeriesDescription = 'premri1ID';
       loadDatasets([dataset]);
-      slicer.transform(gridTransformID).then(transformDataset=>{
+      slicer.gridTransform(gridTransformID).then(transformDataset=>{
         step.renderer.inputFields[1].rgba = [0, 1, 0, 1]; // premri1 target is green
         let transformField = Field.fromDataset(transformDataset)[0];
         transformField.visible = 0;
@@ -147,7 +183,7 @@ function Patient17_setup() {
   });
 
   step.controls.tool = 'trackball';
-  step.controls.gangWindow = 'trackball';
+  step.controls.gangWindow = true;
   step.view.viewNear = 0;
   step.view.viewFar = Linear.LARGE_NUMBER;
   step.uniforms.sliceMode.value = 0;
@@ -1026,6 +1062,7 @@ $(function () {
     requestSeries : requestSeries,
     updateTransferFunction : updateTransferFunction,
     onGradientOpacityScaleChange : (event) => {updateGradientOpacity(event.target.value)},
+    registrationReview : registrationReview,
     performPDE : performPDE,
     performGrowCut : performGrowCut,
     performBilateral : performBilateral,

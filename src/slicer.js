@@ -1,4 +1,5 @@
 class Slicer {
+  // s = new Slicer()
 
   constructor(options={}) {
     this.url = options.url || 'http://localhost:2016/slicer';
@@ -11,6 +12,7 @@ class Slicer {
       request.onload = options.onload || function (event) {
         resolve(event.target.response);
       };
+      request.onprogress = options.onprogress || function() {};
       request.onerror = options.onerror || function() {
         reject({
           status: request.status,
@@ -30,6 +32,12 @@ class Slicer {
     });
   }
 
+  gridTransforms() {
+    return this.request('gridTransforms', {
+      responseType: 'json'
+    });
+  }
+
   postPixelFieldAsVolume(pixelField) {
     let nrrdArrayBuffer = NRRD.format(NRRD.pixelFieldToNRRD(pixelField));
     return new Promise( (resolve,reject) => {
@@ -43,7 +51,6 @@ class Slicer {
       })
       .catch(reject);
     });
-
   }
 
   volume(id) {
@@ -71,14 +78,33 @@ class Slicer {
     });
   }
 
-  transform(id) {
+  gridTransform(id) {
     return new Promise( (resolve,reject) => {
-      this.request(`transform?id=${id}`, {
-        responseType: 'arraybuffer'
+      this.request(`gridTransform?id=${id}`, {
+        responseType: 'arraybuffer',
+        onprogress: (progressEvent) => {
+          console.log(`${progressEvent.loaded} of ${progressEvent.total}`);
+        }
       })
       .then(arrayBuffer => {
+        console.log("arrayBuffer", arrayBuffer);
         let nrrd = NRRD.parse(arrayBuffer);
         resolve(NRRD.nrrdToDICOMDataset(nrrd));
+      })
+      .catch(reject);
+    });
+  }
+
+  repl(code) {
+    // p = s.repl("slicer.app.layoutManager().setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)")
+    return new Promise( (resolve,reject) => {
+      this.request(`repl`, {
+        responseType: 'json',
+        command: 'POST',
+        payload: code,
+      })
+      .then(json => {
+        resolve(json);
       })
       .catch(reject);
     });

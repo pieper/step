@@ -32,9 +32,10 @@ class stepMenubar extends Menubar {
   constructor(step, options) {
     super();
     this.container.add(new stepFileMenu(step,options).container);
-    this.container.add(new stepDatabaseMenu(step,options).container);
+    //this.container.add(new stepDatabaseMenu(step,options).container);
     this.container.add(new stepViewMenu(step,options).container);
     this.container.add(new stepDisplayMenu(step,options).container);
+    this.container.add(new stepUsesMenu(step,options).container);
     this.container.add(new stepOperationMenu(step,options).container);
     this.container.add(new stepAboutMenu(step,options).container);
   }
@@ -63,11 +64,12 @@ class stepFileMenu extends MenuPanel {
 
     // demos
     let demos = [
-      /*
+      `
+      ## comment out whole block
+
       { name: "Prostate Example",
         seriesKeys: ['[["UnspecifiedInstitution","QIN-PROSTATE-01-0002"],["MS2197/BD/PRO   Pelvis w&w/o","1.3.6.1.4.1.14519.5.2.1.3671.7001.267069126134560539593081476574"],["MR","AX FRFSE-XL T2","1.3.6.1.4.1.14519.5.2.1.3671.7001.311804128593572138452599822764"]]'],
       },
-      */
       { name: "Prostate Example",
         seriesKeys: [
           '[["UnspecifiedInstitution","QIN-PROSTATE-01-0001"],["PELVIS W/O CONT","1.3.6.1.4.1.14519.5.2.1.3671.7001.133687106572018334063091507027"],["MR","Apparent Diffusion Coefficient (mm?/s)","1.3.6.1.4.1.14519.5.2.1.3671.7001.261913302903961139526297576821"]]',
@@ -92,6 +94,9 @@ class stepFileMenu extends MenuPanel {
           '[["UnspecifiedInstitution","123456"],["Slicer Sample Data","1.2.826.0.1.3680043.2.1125.1.34027065691713096181869243555208536"],["MR","No series description","1.2.826.0.1.3680043.2.1125.1.60570920072252354871500178658621494"]]',
         ],
       },
+
+      ## end comment out whole block
+      `
     ];
 
     let option;
@@ -422,6 +427,133 @@ class stepDisplayMenu extends MenuPanel {
   }
 
   selectField(field) {
+  }
+}
+
+class stepUsesMenu extends MenuPanel {
+  constructor(step, options) {
+    options = options || {};
+    options.registrationReview = options.registrationReview || function(){};
+    options.performGrowCut = options.performGrowCut || function(){};
+    super(step, {title: 'Uses'});
+    this.options = options;
+
+    let option;
+
+    // Uses -> registrationReview
+    option = new UI.Row();
+    option.setClass( 'option' );
+    option.setTextContent( 'Registration Review' );
+    option.onClick(this.registrationReviewPanel.bind(this));
+    this.menuPanel.add( option );
+  }
+
+  registrationReviewPanel() {
+
+    this.container = new UI.Panel();
+    this.container.setId('registrationReviewPanel');
+
+    this.registrationReviewOptions = this.registrationReviewOptions || {
+      animationSteps : 100.,
+    };
+
+    const slicer = new Slicer();
+
+    this.fixedLabel = new UI.Text ( "Fixed volume");
+    this.container.add ( this.fixedLabel );
+    this.fixedVolumeSelect = new UI.Select().setOptions({
+      selectField: "Updating...",
+    }).setValue('selectField');
+    this.container.add( this.fixedVolumeSelect );
+
+    this.movingLabel = new UI.Text ( "Moving volume");
+    this.container.add ( this.movingLabel );
+    this.movingVolumeSelect = new UI.Select().setOptions({
+      selectField: "Updating...",
+    }).setValue('selectField');
+    this.container.add( this.movingVolumeSelect );
+
+    let slicerVolumes = {};
+    const volumeNames = [];
+    slicer.volumes().then(volumes => {
+      slicerVolumes = volumes;
+      volumes.forEach(volume => {
+        volumeNames.push(volume.name)
+      });
+      this.fixedVolumeSelect.setOptions(volumeNames);
+      this.fixedVolumeSelect.setValue(1);
+      this.movingVolumeSelect.setOptions(volumeNames);
+      this.movingVolumeSelect.setValue(0);
+    });
+
+    this.transformLabel = new UI.Text ( "Transform");
+    this.container.add ( this.transformLabel );
+    this.gridTransformSelect = new UI.Select().setOptions({
+      selectField: "Updating...",
+    }).setValue('selectField');
+    this.container.add( this.gridTransformSelect );
+
+    let slicerGridTransforms = {};
+    const gridTransformNames = [];
+    slicer.gridTransforms().then(gridTransforms => {
+      slicerGridTransforms = gridTransforms;
+      gridTransforms.forEach(gridTransform => {
+        gridTransformNames.push(gridTransform.name)
+      });
+      this.gridTransformSelect.setOptions(gridTransformNames);
+      this.gridTransformSelect.setValue(0);
+    });
+
+    // animation steps integer
+    this.stepsLabel = new UI.Text ( "Animation Steps");
+    this.container.add ( this.stepsLabel );
+    this.animationSteps = new UI.Integer();
+    this.animationSteps.min = 1;
+    this.animationSteps.max = 50;
+    this.animationSteps.precision = 1;
+    this.animationSteps.step = 1;
+    this.animationSteps.unit = "steps";
+    this.container.add( this.animationSteps );
+    this.animationSteps.setValue(this.registrationReviewOptions.animationSteps);
+
+    let apply = function() {
+      const fixedVolumeIndex = this.fixedVolumeSelect.getValue();
+      const fixedVolumeName = this.fixedVolumeSelect.valueOf().dom[fixedVolumeIndex].innerText;
+      slicerVolumes.forEach(volume => {
+        if (volume.name == fixedVolumeName) {
+          this.registrationReviewOptions.fixedVolumeID = volume.id;
+        }
+      });
+      const movingVolumeIndex = this.movingVolumeSelect.getValue();
+      const movingVolumeName = this.movingVolumeSelect.valueOf().dom[movingVolumeIndex].innerText;
+      slicerVolumes.forEach(volume => {
+        if (volume.name == movingVolumeName) {
+          this.registrationReviewOptions.movingVolumeID = volume.id;
+        }
+      });
+      const gridTransformIndex = this.gridTransformSelect.getValue();
+      const gridTransformName = this.gridTransformSelect.valueOf().dom[gridTransformIndex].innerText;
+      slicerGridTransforms.forEach(gridTransform => {
+        if (gridTransform.name == gridTransformName) {
+          this.registrationReviewOptions.gridTransformID = gridTransform.id;
+        }
+      });
+      this.registrationReviewOptions.animationSteps = this.animationSteps.getValue();
+      this.options.registrationReview(this.registrationReviewOptions);
+    }
+    this.applyButton = new UI.Button("Apply");
+    this.container.add( this.applyButton );
+    this.applyButton.onClick(apply.bind(this));
+
+    let cancel = function() {
+      step.ui.sideBar.dom.removeChild(this.container.dom);
+    }
+    this.cancelButton = new UI.Button("Cancel");
+    this.container.add( this.cancelButton );
+    this.cancelButton.onClick(cancel.bind(this));
+
+    step.ui.sideBar.dom.appendChild(this.container.dom);
+    globals.reg = this;
   }
 }
 
